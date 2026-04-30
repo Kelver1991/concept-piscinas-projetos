@@ -17,7 +17,7 @@
         <div>
           <p class="eyebrow">Acesso restrito</p>
           <h1>Fila de projetos</h1>
-          <p>Digite a senha da equipe para acessar o sistema.</p>
+          <p>Digite a senha do seu perfil para acessar o sistema.</p>
         </div>
         <label>
           Senha
@@ -40,12 +40,14 @@
       </a>
 
       <nav class="nav" aria-label="Menu principal">
-        <a href="#nova">Nova solicitacao</a>
+        <a href="#nova" data-role-view="comercial adm">Nova solicitacao</a>
         <a href="#fila">Fila</a>
         <a href="#historico">Historico</a>
       </nav>
 
-      <div class="topbar__actions">
+      <div class="role-badge" id="roleBadge">Acesso</div>
+
+      <div class="topbar__actions" data-role-view="adm">
         <button class="icon-button" type="button" id="exportData" title="Exportar backup">
           <span aria-hidden="true">EX</span>
         </button>
@@ -84,7 +86,7 @@
       </section>
 
       <section class="workspace">
-        <form class="request-form" id="requestForm">
+        <form class="request-form" id="requestForm" data-role-view="comercial adm">
           <div class="section-title" id="nova">
             <p class="eyebrow">Nova solicitacao</p>
             <h2>Projeto inicial</h2>

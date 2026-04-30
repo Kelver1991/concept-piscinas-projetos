@@ -25,7 +25,9 @@ const stages = [
 const storageKey = "filaProjetosPiscinas";
 const accessStorageKey = "conceptPiscinasAccess";
 const config = window.APP_CONFIG || {};
-const accessPassword = config.accessPassword || "";
+const accessPasswords = config.accessPasswords || {
+  adm: config.accessPassword || "",
+};
 const supabaseUrl = (config.supabaseUrl || "").replace(/\/$/, "");
 const supabaseAnonKey = config.supabaseAnonKey || "";
 const useRemoteDatabase = Boolean(supabaseUrl && supabaseAnonKey);
@@ -45,21 +47,45 @@ const submitButton = requestForm.querySelector('button[type="submit"]');
 const loginScreen = document.querySelector("#loginScreen");
 const loginForm = document.querySelector("#loginForm");
 const loginFeedback = document.querySelector("#loginFeedback");
+const roleBadge = document.querySelector("#roleBadge");
 let activeFilter = "all";
 let isSubmittingRequest = false;
+let currentRole = "";
 
 function hasAccess() {
-  return !accessPassword || sessionStorage.getItem(accessStorageKey) === "granted";
+  currentRole = sessionStorage.getItem(accessStorageKey) || "";
+  return !Object.values(accessPasswords).filter(Boolean).length || Boolean(currentRole);
 }
 
 function showApp() {
   loginScreen.classList.add("is-hidden");
   document.body.classList.add("has-access");
+  applyRoleView();
 }
 
 function showLogin() {
   loginScreen.classList.remove("is-hidden");
   document.body.classList.remove("has-access");
+}
+
+function getRoleLabel(role) {
+  return {
+    comercial: "Comercial",
+    arquiteto: "Arquitetura",
+    adm: "ADM",
+  }[role] || "Acesso";
+}
+
+function canUse(...roles) {
+  return roles.includes(currentRole);
+}
+
+function applyRoleView() {
+  roleBadge.textContent = getRoleLabel(currentRole);
+  document.querySelectorAll("[data-role-view]").forEach((element) => {
+    const allowedRoles = element.dataset.roleView.split(" ");
+    element.hidden = !allowedRoles.includes(currentRole);
+  });
 }
 
 function loadProjects() {
@@ -249,8 +275,14 @@ function renderStageTrack(project) {
 function renderActions(project) {
   const status = getStatus(project);
 
+  if (currentRole === "comercial") {
+    return `<span class="readonly-note">Acompanhamento liberado. Alteracoes sao da arquitetura ou ADM.</span>`;
+  }
+
   if (status === "done") {
-    return `<button class="ghost-button" type="button" data-reopen="${project.id}">Reabrir</button>`;
+    return canUse("arquiteto", "adm")
+      ? `<button class="ghost-button" type="button" data-reopen="${project.id}">Reabrir</button>`
+      : "";
   }
 
   const architectSelect = `
@@ -283,7 +315,7 @@ function renderActions(project) {
     </button>
     <button class="secondary-button" type="button" data-prev="${project.id}">Voltar etapa</button>
     <button class="primary-button" type="button" data-next="${project.id}">Avancar etapa</button>
-    <button class="danger-button" type="button" data-delete="${project.id}">Excluir</button>
+    ${currentRole === "adm" ? `<button class="danger-button" type="button" data-delete="${project.id}">Excluir</button>` : ""}
   `;
 }
 
@@ -395,6 +427,7 @@ async function fileToInfo(file) {
 
 requestForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (!canUse("comercial", "adm")) return;
   if (isSubmittingRequest) return;
 
   isSubmittingRequest = true;
@@ -449,6 +482,7 @@ requestForm.addEventListener("submit", async (event) => {
 queueList.addEventListener("click", async (event) => {
   const actionButton = event.target.closest("button");
   if (!actionButton) return;
+  if (!canUse("arquiteto", "adm")) return;
 
   const id =
     actionButton.dataset.take ||
@@ -492,6 +526,7 @@ queueList.addEventListener("click", async (event) => {
   }
 
   if (actionButton.dataset.delete) {
+    if (!canUse("adm")) return;
     const canDelete = confirm(`Excluir a solicitacao de ${project.client}?`);
     if (!canDelete) return;
     projects = projects.filter((item) => item.id !== id);
@@ -514,6 +549,7 @@ filters.forEach((button) => {
 });
 
 exportData.addEventListener("click", () => {
+  if (!canUse("adm")) return;
   const blob = new Blob([JSON.stringify(projects, null, 2)], {
     type: "application/json",
   });
@@ -525,6 +561,7 @@ exportData.addEventListener("click", () => {
 });
 
 importData.addEventListener("change", () => {
+  if (!canUse("adm")) return;
   const file = importData.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -548,9 +585,13 @@ importData.addEventListener("change", () => {
 loginForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const typedPassword = new FormData(loginForm).get("accessPassword");
+  const matchedRole = Object.entries(accessPasswords).find(
+    ([, password]) => password && password === typedPassword,
+  )?.[0];
 
-  if (typedPassword === accessPassword) {
-    sessionStorage.setItem(accessStorageKey, "granted");
+  if (matchedRole) {
+    currentRole = matchedRole;
+    sessionStorage.setItem(accessStorageKey, matchedRole);
     loginForm.reset();
     loginFeedback.textContent = "";
     showApp();

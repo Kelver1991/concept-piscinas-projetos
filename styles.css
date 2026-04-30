@@ -147,6 +147,19 @@ a {
   gap: 10px;
 }
 
+.role-badge {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  color: var(--blue);
+  background: #e9f4f5;
+  border: 1px solid #c8dddf;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
 .nav {
   color: var(--muted);
   font-size: 0.94rem;
@@ -610,6 +623,19 @@ legend {
 .project-actions input,
 .project-actions select {
   width: min(220px, 100%);
+}
+
+.readonly-note {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  padding: 10px 12px;
+  color: var(--muted);
+  background: #f5f9f8;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 800;
 }
 
 .timeline {

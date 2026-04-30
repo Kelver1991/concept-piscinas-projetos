@@ -6,13 +6,23 @@ arquitetura da Concept Piscinas.
 ## Como usar localmente
 
 1. Abra `index.html` no navegador.
-2. O vendedor preenche a solicitacao inicial do cliente.
-3. A solicitacao entra automaticamente na fila por ordem de cadastro.
-4. O arquiteto escolhe o proprio nome, informa a estimativa e clica em
+2. Entre com uma das senhas de perfil.
+3. O vendedor preenche a solicitacao inicial do cliente.
+4. A solicitacao entra automaticamente na fila por ordem de cadastro.
+5. O arquiteto escolhe o proprio nome, informa a estimativa e clica em
    `Pegar projeto`.
-5. A arquitetura avanca o card pelas etapas ate marcar como entregue.
+6. A arquitetura avanca o card pelas etapas ate marcar como entregue.
 
 Sem configuracao online, os dados ficam salvos apenas no navegador usado.
+
+## Perfis de acesso
+
+- Comercial: `conceptcomercial`
+- Arquitetura: `conceptarq`
+- ADM: `conceptadm`
+
+Comercial cadastra e acompanha solicitacoes. Arquitetura assume e movimenta
+projetos. ADM ve tudo, exporta/importa backup e pode excluir registros.
 
 ## Como deixar online para celular e outras maquinas
 
