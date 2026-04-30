@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Sistema da Concept Piscinas para fila de solicitacoes de projetos."
+    />
+    <title>Concept Piscinas | Fila de Projetos</title>
+    <link rel="stylesheet" href="styles.css?v=1" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#painel" aria-label="Inicio">
+        <img src="assets/concept-logo-fechado.jpeg" alt="Concept Piscinas e Exteriores" />
+      </a>
+
+      <nav class="nav" aria-label="Menu principal">
+        <a href="#nova">Nova solicitacao</a>
+        <a href="#fila">Fila</a>
+        <a href="#historico">Historico</a>
+      </nav>
+
+      <div class="topbar__actions">
+        <button class="icon-button" type="button" id="exportData" title="Exportar backup">
+          <span aria-hidden="true">EX</span>
+        </button>
+        <label class="icon-button" title="Importar backup">
+          <span aria-hidden="true">IM</span>
+          <input id="importData" type="file" accept="application/json" />
+        </label>
+      </div>
+    </header>
+
+    <main>
+      <section class="dashboard" id="painel">
+        <div class="dashboard__intro">
+          <p class="eyebrow">Painel compartilhado</p>
+          <h1>Controle a ordem dos projetos da Concept Piscinas.</h1>
+          <p>
+            O vendedor registra a solicitacao inicial. A arquitetura assume o
+            projeto, informa prazo e movimenta pelas etapas ate a entrega.
+          </p>
+        </div>
+
+        <div class="metrics" aria-label="Resumo da fila">
+          <article>
+            <span>Na fila</span>
+            <strong id="metricWaiting">0</strong>
+          </article>
+          <article>
+            <span>Em producao</span>
+            <strong id="metricWorking">0</strong>
+          </article>
+          <article>
+            <span>Entregues</span>
+            <strong id="metricDone">0</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <form class="request-form" id="requestForm">
+          <div class="section-title" id="nova">
+            <p class="eyebrow">Nova solicitacao</p>
+            <h2>Projeto inicial</h2>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              Vendedor
+              <select name="seller" required></select>
+            </label>
+            <label>
+              Cliente
+              <input name="client" type="text" placeholder="Nome do cliente" required />
+            </label>
+            <label>
+              Telefone
+              <input name="phone" type="tel" placeholder="(00) 00000-0000" />
+            </label>
+            <label>
+              Medidas da piscina
+              <input name="measures" type="text" placeholder="Ex.: 6 x 3 x 1,40 m" required />
+            </label>
+            <label>
+              Formato / modelo
+              <input name="shape" type="text" placeholder="Ex.: retangular, prainha, spa" />
+            </label>
+            <label>
+              Prazo desejado
+              <input name="deadline" type="date" />
+            </label>
+          </div>
+
+          <fieldset>
+            <legend>Equipamentos da piscina</legend>
+            <div class="check-grid" id="equipmentOptions"></div>
+          </fieldset>
+
+          <div class="form-grid">
+            <label class="textarea-label">
+              Observacoes do vendedor
+              <textarea
+                name="notes"
+                rows="4"
+                placeholder="Detalhes do cliente, terreno, borda, casa de maquinas, referencias..."
+              ></textarea>
+            </label>
+            <label>
+              Croqui ou imagem
+              <input name="sketch" type="file" accept="image/*,.pdf" />
+            </label>
+          </div>
+
+          <label class="switch">
+            <input name="needs3d" type="checkbox" />
+            <span>Solicitar 3D junto do projeto inicial</span>
+          </label>
+
+          <button class="primary-button" type="submit">Adicionar na fila</button>
+          <p class="form-feedback" id="formFeedback" role="status"></p>
+        </form>
+
+        <aside class="side-panel">
+          <div class="sync-card" id="syncStatus">
+            <strong>Modo local</strong>
+            <p>Configure o Supabase para sincronizar entre celular e computadores.</p>
+          </div>
+          <div class="section-title">
+            <p class="eyebrow">Equipe</p>
+            <h2>Responsaveis</h2>
+          </div>
+          <div class="team-list" id="teamList"></div>
+          <div class="hint">
+            <strong>Acesso em qualquer lugar</strong>
+            <p>
+              Publique esta pasta no GitHub Pages, Netlify ou Vercel. Com o
+              Supabase configurado, a equipe acessa do computador ou celular.
+            </p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section" id="fila">
+        <div class="section-title section-title--row">
+          <div>
+            <p class="eyebrow">Ordem de solicitacao</p>
+            <h2>Fila de arquitetura</h2>
+          </div>
+          <div class="filters" aria-label="Filtros da fila">
+            <button class="filter is-active" type="button" data-filter="all">Todos</button>
+            <button class="filter" type="button" data-filter="waiting">Na fila</button>
+            <button class="filter" type="button" data-filter="working">Em producao</button>
+            <button class="filter" type="button" data-filter="done">Entregues</button>
+          </div>
+        </div>
+
+        <div class="queue" id="queueList" aria-live="polite"></div>
+      </section>
+
+      <section class="section section--muted" id="historico">
+        <div class="section-title">
+          <p class="eyebrow">Linha do tempo</p>
+          <h2>Historico das movimentacoes</h2>
+        </div>
+        <div class="timeline" id="timeline"></div>
+      </section>
+    </main>
+
+    <template id="projectTemplate">
+      <article class="project-card">
+        <div class="project-card__head">
+          <div>
+            <span class="queue-number"></span>
+            <h3></h3>
+            <p></p>
+          </div>
+          <span class="status-pill"></span>
+        </div>
+
+        <dl class="project-meta"></dl>
+        <div class="stage-track"></div>
+        <div class="project-notes"></div>
+        <div class="project-actions"></div>
+      </article>
+    </template>
+
+    <script src="config.js?v=1"></script>
+    <script src="script.js?v=2"></script>
+  </body>
+</html>
