@@ -522,7 +522,16 @@ async function fileToInfo(file) {
 }
 
 async function enterApplication() {
-  currentProfile = await loadCurrentProfile();
+  try {
+    currentProfile = await loadCurrentProfile();
+  } catch (error) {
+    console.error(error);
+    loginFeedback.textContent = `Erro ao carregar perfil: ${error.message}`;
+    saveSession(null);
+    showLoginScreen();
+    return;
+  }
+
   if (!currentProfile) {
     loginFeedback.textContent = "Perfil nao encontrado. Solicite acesso novamente.";
     saveSession(null);
@@ -756,7 +765,7 @@ loginForm.addEventListener("submit", async (event) => {
   } catch (error) {
     console.error(error);
     saveSession(null);
-    loginFeedback.textContent = "Email ou senha invalidos, ou acesso ainda nao liberado.";
+    loginFeedback.textContent = `Nao foi possivel entrar: ${error.message}`;
   }
 });
 

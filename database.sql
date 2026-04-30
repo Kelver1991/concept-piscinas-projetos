@@ -64,43 +64,19 @@ alter table public.projects enable row level security;
 drop policy if exists "Profiles can read own profile" on public.profiles;
 drop policy if exists "Approved admins can read profiles" on public.profiles;
 drop policy if exists "Approved admins can update profiles" on public.profiles;
+drop policy if exists "Authenticated users can read profiles" on public.profiles;
+drop policy if exists "Authenticated users can update profiles" on public.profiles;
 
-create policy "Profiles can read own profile"
+create policy "Authenticated users can read profiles"
 on public.profiles for select
 to authenticated
-using (id = auth.uid());
+using (true);
 
-create policy "Approved admins can read profiles"
-on public.profiles for select
-to authenticated
-using (
-  exists (
-    select 1 from public.profiles adm
-    where adm.id = auth.uid()
-      and adm.role = 'adm'
-      and adm.status = 'approved'
-  )
-);
-
-create policy "Approved admins can update profiles"
+create policy "Authenticated users can update profiles"
 on public.profiles for update
 to authenticated
-using (
-  exists (
-    select 1 from public.profiles adm
-    where adm.id = auth.uid()
-      and adm.role = 'adm'
-      and adm.status = 'approved'
-  )
-)
-with check (
-  exists (
-    select 1 from public.profiles adm
-    where adm.id = auth.uid()
-      and adm.role = 'adm'
-      and adm.status = 'approved'
-  )
-);
+using (true)
+with check (true);
 
 drop policy if exists "Allow public read projects" on public.projects;
 drop policy if exists "Allow public insert projects" on public.projects;
