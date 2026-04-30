@@ -11,6 +11,29 @@
     <link rel="stylesheet" href="styles.css?v=1" />
   </head>
   <body>
+    <section class="login-screen" id="loginScreen" aria-label="Acesso restrito">
+      <form class="login-box" id="loginForm">
+        <img src="assets/concept-logo-fechado.jpeg" alt="Concept Piscinas e Exteriores" />
+        <div>
+          <p class="eyebrow">Acesso restrito</p>
+          <h1>Fila de projetos</h1>
+          <p>Digite a senha da equipe para acessar o sistema.</p>
+        </div>
+        <label>
+          Senha
+          <input
+            id="accessPassword"
+            name="accessPassword"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+        </label>
+        <button class="primary-button" type="submit">Entrar</button>
+        <p class="form-feedback" id="loginFeedback" role="status"></p>
+      </form>
+    </section>
+
     <header class="topbar">
       <a class="brand" href="#painel" aria-label="Inicio">
         <img src="assets/concept-logo-fechado.jpeg" alt="Concept Piscinas e Exteriores" />
@@ -188,6 +211,6 @@
     </template>
 
     <script src="config.js?v=1"></script>
-    <script src="script.js?v=2"></script>
+    <script src="script.js?v=3"></script>
   </body>
 </html>

@@ -26,6 +26,10 @@ body {
   background: var(--paper);
 }
 
+body:not(.has-access) {
+  overflow: hidden;
+}
+
 button,
 input,
 select,
@@ -51,6 +55,51 @@ button:disabled {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+.login-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    linear-gradient(105deg, rgba(11, 68, 82, 0.82), rgba(17, 107, 132, 0.52)),
+    url("https://images.unsplash.com/photo-1575429198097-0414ec08e8cd?auto=format&fit=crop&w=1800&q=80")
+      center/cover;
+}
+
+.login-screen.is-hidden {
+  display: none;
+}
+
+.login-box {
+  width: min(420px, 100%);
+  display: grid;
+  gap: 16px;
+  padding: clamp(22px, 4vw, 34px);
+  background: rgba(242, 242, 242, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+}
+
+.login-box img {
+  display: block;
+  width: min(260px, 100%);
+}
+
+.login-box h1 {
+  margin: 0 0 8px;
+  font-size: 2rem;
+  line-height: 1.05;
+}
+
+.login-box p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .topbar {

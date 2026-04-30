@@ -23,7 +23,9 @@ const stages = [
 ];
 
 const storageKey = "filaProjetosPiscinas";
+const accessStorageKey = "conceptPiscinasAccess";
 const config = window.APP_CONFIG || {};
+const accessPassword = config.accessPassword || "";
 const supabaseUrl = (config.supabaseUrl || "").replace(/\/$/, "");
 const supabaseAnonKey = config.supabaseAnonKey || "";
 const useRemoteDatabase = Boolean(supabaseUrl && supabaseAnonKey);
@@ -40,8 +42,25 @@ const exportData = document.querySelector("#exportData");
 const importData = document.querySelector("#importData");
 const syncStatus = document.querySelector("#syncStatus");
 const submitButton = requestForm.querySelector('button[type="submit"]');
+const loginScreen = document.querySelector("#loginScreen");
+const loginForm = document.querySelector("#loginForm");
+const loginFeedback = document.querySelector("#loginFeedback");
 let activeFilter = "all";
 let isSubmittingRequest = false;
+
+function hasAccess() {
+  return !accessPassword || sessionStorage.getItem(accessStorageKey) === "granted";
+}
+
+function showApp() {
+  loginScreen.classList.add("is-hidden");
+  document.body.classList.add("has-access");
+}
+
+function showLogin() {
+  loginScreen.classList.remove("is-hidden");
+  document.body.classList.remove("has-access");
+}
 
 function loadProjects() {
   try {
@@ -526,7 +545,28 @@ importData.addEventListener("change", () => {
   reader.readAsText(file);
 });
 
+loginForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const typedPassword = new FormData(loginForm).get("accessPassword");
+
+  if (typedPassword === accessPassword) {
+    sessionStorage.setItem(accessStorageKey, "granted");
+    loginForm.reset();
+    loginFeedback.textContent = "";
+    showApp();
+    return;
+  }
+
+  loginFeedback.textContent = "Senha incorreta.";
+});
+
 async function init() {
+  if (hasAccess()) {
+    showApp();
+  } else {
+    showLogin();
+  }
+
   buildTeam();
 
   if (useRemoteDatabase) {
