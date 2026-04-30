@@ -23,14 +23,12 @@ const stages = [
 ];
 
 const storageKey = "filaProjetosPiscinas";
-const accessStorageKey = "conceptPiscinasAccess";
+const sessionStorageKey = "conceptPiscinasSession";
 const config = window.APP_CONFIG || {};
-const accessPasswords = config.accessPasswords || {
-  adm: config.accessPassword || "",
-};
 const supabaseUrl = (config.supabaseUrl || "").replace(/\/$/, "");
 const supabaseAnonKey = config.supabaseAnonKey || "";
 const useRemoteDatabase = Boolean(supabaseUrl && supabaseAnonKey);
+
 const requestForm = document.querySelector("#requestForm");
 const sellerSelect = requestForm.elements.seller;
 const equipmentOptions = document.querySelector("#equipmentOptions");
@@ -46,46 +44,83 @@ const syncStatus = document.querySelector("#syncStatus");
 const submitButton = requestForm.querySelector('button[type="submit"]');
 const loginScreen = document.querySelector("#loginScreen");
 const loginForm = document.querySelector("#loginForm");
+const accessRequestForm = document.querySelector("#accessRequestForm");
+const showRequestAccess = document.querySelector("#showRequestAccess");
+const showLogin = document.querySelector("#showLogin");
 const loginFeedback = document.querySelector("#loginFeedback");
+const requestFeedback = document.querySelector("#requestFeedback");
 const roleBadge = document.querySelector("#roleBadge");
+const approvalList = document.querySelector("#approvalList");
+const logoutButton = document.querySelector("#logoutButton");
+
 let activeFilter = "all";
 let isSubmittingRequest = false;
+let projects = [];
+let currentSession = loadSession();
+let currentUser = currentSession?.user || null;
+let currentProfile = null;
 let currentRole = "";
 
-function hasAccess() {
-  currentRole = sessionStorage.getItem(accessStorageKey) || "";
-  return !Object.values(accessPasswords).filter(Boolean).length || Boolean(currentRole);
+function loadSession() {
+  try {
+    return JSON.parse(localStorage.getItem(sessionStorageKey));
+  } catch {
+    return null;
+  }
 }
 
-function showApp() {
-  loginScreen.classList.add("is-hidden");
-  document.body.classList.add("has-access");
-  applyRoleView();
+function saveSession(session) {
+  currentSession = session;
+  currentUser = session?.user || null;
+  if (session) {
+    localStorage.setItem(sessionStorageKey, JSON.stringify(session));
+  } else {
+    localStorage.removeItem(sessionStorageKey);
+  }
 }
 
-function showLogin() {
-  loginScreen.classList.remove("is-hidden");
-  document.body.classList.remove("has-access");
-}
-
-function getRoleLabel(role) {
+function authHeaders(extra = {}) {
   return {
-    comercial: "Comercial",
-    arquiteto: "Arquitetura",
-    adm: "ADM",
-  }[role] || "Acesso";
+    apikey: supabaseAnonKey,
+    "Content-Type": "application/json",
+    ...extra,
+  };
 }
 
-function canUse(...roles) {
-  return roles.includes(currentRole);
+function dataHeaders(extra = {}) {
+  const token = currentSession?.access_token || supabaseAnonKey;
+  return {
+    apikey: supabaseAnonKey,
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    Prefer: "return=minimal",
+    ...extra,
+  };
 }
 
-function applyRoleView() {
-  roleBadge.textContent = getRoleLabel(currentRole);
-  document.querySelectorAll("[data-role-view]").forEach((element) => {
-    const allowedRoles = element.dataset.roleView.split(" ");
-    element.hidden = !allowedRoles.includes(currentRole);
+async function authRequest(path, options = {}) {
+  const response = await fetch(`${supabaseUrl}/auth/v1/${path}`, {
+    ...options,
+    headers: authHeaders(options.headers || {}),
   });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.msg || data.message || "Falha de autenticacao");
+  return data;
+}
+
+async function supabaseRequest(path, options = {}) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+    ...options,
+    headers: dataHeaders(options.headers || {}),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "Falha ao acessar banco online");
+  }
+
+  if (response.status === 204) return null;
+  return response.json();
 }
 
 function loadProjects() {
@@ -96,29 +131,8 @@ function loadProjects() {
   }
 }
 
-function saveLocalProjects(projects) {
-  localStorage.setItem(storageKey, JSON.stringify(projects));
-}
-
-async function supabaseRequest(path, options = {}) {
-  const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
-    ...options,
-    headers: {
-      apikey: supabaseAnonKey,
-      Authorization: `Bearer ${supabaseAnonKey}`,
-      "Content-Type": "application/json",
-      Prefer: "return=minimal",
-      ...(options.headers || {}),
-    },
-  });
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || "Falha ao acessar banco online");
-  }
-
-  if (response.status === 204) return null;
-  return response.json();
+function saveLocalProjects(nextProjects) {
+  localStorage.setItem(storageKey, JSON.stringify(nextProjects));
 }
 
 async function loadRemoteProjects() {
@@ -157,7 +171,32 @@ async function deleteProject(id) {
   });
 }
 
-let projects = [];
+async function loadCurrentProfile() {
+  if (!currentUser) return null;
+  const rows = await supabaseRequest(
+    `profiles?select=id,name,email,role,status&id=eq.${encodeURIComponent(currentUser.id)}`,
+    { headers: { Prefer: "" } },
+  );
+  return rows[0] || null;
+}
+
+async function loadPendingProfiles() {
+  if (!canUse("adm")) return [];
+  return supabaseRequest("profiles?select=id,name,email,role,status,created_at&status=eq.pending&order=created_at.asc", {
+    headers: { Prefer: "" },
+  });
+}
+
+async function updateProfileStatus(id, status) {
+  await supabaseRequest(`profiles?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      status,
+      approved_at: status === "approved" ? new Date().toISOString() : null,
+      approved_by: currentUser.id,
+    }),
+  });
+}
 
 function createId() {
   if (crypto.randomUUID) return crypto.randomUUID();
@@ -179,6 +218,39 @@ function formatDateTime(value) {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function getRoleLabel(role) {
+  return {
+    comercial: "Comercial",
+    arquiteto: "Arquitetura",
+    adm: "ADM",
+  }[role] || "Acesso";
+}
+
+function canUse(...roles) {
+  return roles.includes(currentRole);
+}
+
+function showApp() {
+  loginScreen.classList.add("is-hidden");
+  document.body.classList.add("has-access");
+  applyRoleView();
+}
+
+function showLoginScreen() {
+  loginScreen.classList.remove("is-hidden");
+  loginForm.classList.remove("is-hidden");
+  accessRequestForm.classList.add("is-hidden");
+  document.body.classList.remove("has-access");
+}
+
+function applyRoleView() {
+  roleBadge.textContent = getRoleLabel(currentRole);
+  document.querySelectorAll("[data-role-view]").forEach((element) => {
+    const allowedRoles = element.dataset.roleView.split(" ");
+    element.hidden = !allowedRoles.includes(currentRole);
+  });
 }
 
 function getStatus(project) {
@@ -391,14 +463,38 @@ function renderTimeline() {
     : `<p class="empty-state">O historico aparece assim que houver solicitacoes.</p>`;
 }
 
+async function renderApprovals() {
+  if (!canUse("adm")) return;
+  const pending = await loadPendingProfiles().catch(() => []);
+  approvalList.innerHTML = pending.length
+    ? pending
+        .map(
+          (profile) => `
+            <article class="approval-card">
+              <div>
+                <strong>${escapeHtml(profile.name)}</strong>
+                <span>${escapeHtml(profile.email)} - ${getRoleLabel(profile.role)}</span>
+              </div>
+              <div>
+                <button class="primary-button" type="button" data-approve-user="${profile.id}">Liberar</button>
+                <button class="danger-button" type="button" data-reject-user="${profile.id}">Rejeitar</button>
+              </div>
+            </article>
+          `,
+        )
+        .join("")
+    : `<p class="empty-state">Nenhuma solicitacao pendente.</p>`;
+}
+
 function renderAll() {
   updateMetrics();
   renderQueue();
   renderTimeline();
+  renderApprovals();
 }
 
 async function refreshRemoteProjects() {
-  if (!useRemoteDatabase) return;
+  if (!useRemoteDatabase || !currentSession || !currentProfile) return;
 
   try {
     projects = await loadRemoteProjects();
@@ -423,6 +519,55 @@ async function fileToInfo(file) {
       });
     reader.readAsDataURL(file);
   });
+}
+
+async function enterApplication() {
+  currentProfile = await loadCurrentProfile();
+  if (!currentProfile) {
+    loginFeedback.textContent = "Perfil nao encontrado. Solicite acesso novamente.";
+    saveSession(null);
+    showLoginScreen();
+    return;
+  }
+
+  if (currentProfile.status === "pending") {
+    loginFeedback.textContent = "Seu acesso ainda esta aguardando liberacao do ADM.";
+    saveSession(null);
+    showLoginScreen();
+    return;
+  }
+
+  if (currentProfile.status === "rejected") {
+    loginFeedback.textContent = "Seu acesso nao foi liberado. Fale com o ADM.";
+    saveSession(null);
+    showLoginScreen();
+    return;
+  }
+
+  currentRole = currentProfile.role;
+  showApp();
+  await loadInitialData();
+}
+
+async function loadInitialData() {
+  if (useRemoteDatabase) {
+    try {
+      projects = await loadRemoteProjects();
+      saveLocalProjects(projects);
+      updateSyncStatus(true);
+    } catch (error) {
+      console.error(error);
+      projects = loadProjects();
+      updateSyncStatus(false);
+      formFeedback.textContent =
+        "Nao foi possivel conectar ao banco online. Usando modo local neste navegador.";
+    }
+  } else {
+    projects = loadProjects();
+    updateSyncStatus(false);
+  }
+
+  renderAll();
 }
 
 requestForm.addEventListener("submit", async (event) => {
@@ -539,6 +684,15 @@ queueList.addEventListener("click", async (event) => {
   renderAll();
 });
 
+approvalList.addEventListener("click", async (event) => {
+  const button = event.target.closest("button");
+  if (!button || !canUse("adm")) return;
+  const id = button.dataset.approveUser || button.dataset.rejectUser;
+  if (!id) return;
+  await updateProfileStatus(id, button.dataset.approveUser ? "approved" : "rejected");
+  await renderApprovals();
+});
+
 filters.forEach((button) => {
   button.addEventListener("click", () => {
     filters.forEach((item) => item.classList.remove("is-active"));
@@ -582,52 +736,93 @@ importData.addEventListener("change", () => {
   reader.readAsText(file);
 });
 
-loginForm.addEventListener("submit", (event) => {
+loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const typedPassword = new FormData(loginForm).get("accessPassword");
-  const matchedRole = Object.entries(accessPasswords).find(
-    ([, password]) => password && password === typedPassword,
-  )?.[0];
+  loginFeedback.textContent = "Entrando...";
+  const data = new FormData(loginForm);
 
-  if (matchedRole) {
-    currentRole = matchedRole;
-    sessionStorage.setItem(accessStorageKey, matchedRole);
+  try {
+    const session = await authRequest("token?grant_type=password", {
+      method: "POST",
+      body: JSON.stringify({
+        email: data.get("email"),
+        password: data.get("password"),
+      }),
+    });
+    saveSession(session);
     loginForm.reset();
     loginFeedback.textContent = "";
-    showApp();
-    return;
+    await enterApplication();
+  } catch (error) {
+    console.error(error);
+    saveSession(null);
+    loginFeedback.textContent = "Email ou senha invalidos, ou acesso ainda nao liberado.";
   }
+});
 
-  loginFeedback.textContent = "Senha incorreta.";
+accessRequestForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  requestFeedback.textContent = "Enviando solicitacao...";
+  const data = new FormData(accessRequestForm);
+
+  try {
+    await authRequest("signup", {
+      method: "POST",
+      body: JSON.stringify({
+        email: data.get("email"),
+        password: data.get("password"),
+        data: {
+          name: data.get("name"),
+          role: data.get("role"),
+        },
+      }),
+    });
+    accessRequestForm.reset();
+    requestFeedback.textContent =
+      "Solicitacao enviada. Aguarde o ADM liberar seu acesso.";
+  } catch (error) {
+    console.error(error);
+    requestFeedback.textContent = "Nao foi possivel solicitar acesso. Verifique os dados.";
+  }
+});
+
+showRequestAccess.addEventListener("click", () => {
+  loginForm.classList.add("is-hidden");
+  accessRequestForm.classList.remove("is-hidden");
+});
+
+showLogin.addEventListener("click", () => {
+  accessRequestForm.classList.add("is-hidden");
+  loginForm.classList.remove("is-hidden");
+});
+
+logoutButton.addEventListener("click", async () => {
+  if (currentSession?.access_token) {
+    authRequest("logout", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${currentSession.access_token}` },
+    }).catch(console.error);
+  }
+  saveSession(null);
+  currentProfile = null;
+  currentRole = "";
+  showLoginScreen();
 });
 
 async function init() {
-  if (hasAccess()) {
-    showApp();
-  } else {
-    showLogin();
-  }
-
   buildTeam();
 
-  if (useRemoteDatabase) {
+  if (currentSession?.access_token && currentUser) {
     try {
-      projects = await loadRemoteProjects();
-      saveLocalProjects(projects);
-      updateSyncStatus(true);
+      await enterApplication();
     } catch (error) {
       console.error(error);
-      projects = loadProjects();
-      updateSyncStatus(false);
-      formFeedback.textContent =
-        "Nao foi possivel conectar ao banco online. Usando modo local neste navegador.";
+      saveSession(null);
+      showLoginScreen();
     }
   } else {
-    projects = loadProjects();
-    updateSyncStatus(false);
+    showLoginScreen();
   }
-
-  renderAll();
 
   if (useRemoteDatabase) {
     setInterval(refreshRemoteProjects, 30000);

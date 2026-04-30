@@ -17,20 +17,60 @@
         <div>
           <p class="eyebrow">Acesso restrito</p>
           <h1>Fila de projetos</h1>
-          <p>Digite a senha do seu perfil para acessar o sistema.</p>
+          <p>Entre com seu email e senha para acessar o sistema.</p>
         </div>
+        <label>
+          Email
+          <input id="loginEmail" name="email" type="email" autocomplete="email" required />
+        </label>
         <label>
           Senha
           <input
-            id="accessPassword"
-            name="accessPassword"
+            id="loginPassword"
+            name="password"
             type="password"
             autocomplete="current-password"
             required
           />
         </label>
         <button class="primary-button" type="submit">Entrar</button>
+        <button class="ghost-button" type="button" id="showRequestAccess">
+          Solicitar primeiro acesso
+        </button>
         <p class="form-feedback" id="loginFeedback" role="status"></p>
+      </form>
+
+      <form class="login-box is-hidden" id="accessRequestForm">
+        <img src="assets/concept-logo-fechado.jpeg" alt="Concept Piscinas e Exteriores" />
+        <div>
+          <p class="eyebrow">Primeiro acesso</p>
+          <h1>Solicitar entrada</h1>
+          <p>Seu acesso fica pendente ate o ADM liberar.</p>
+        </div>
+        <label>
+          Nome
+          <input name="name" type="text" autocomplete="name" required />
+        </label>
+        <label>
+          Email
+          <input name="email" type="email" autocomplete="email" required />
+        </label>
+        <label>
+          Senha
+          <input name="password" type="password" autocomplete="new-password" minlength="6" required />
+        </label>
+        <label>
+          Funcao
+          <select name="role" required>
+            <option value="comercial">Comercial</option>
+            <option value="arquiteto">Arquiteto</option>
+          </select>
+        </label>
+        <button class="primary-button" type="submit">Solicitar acesso</button>
+        <button class="ghost-button" type="button" id="showLogin">
+          Ja tenho acesso
+        </button>
+        <p class="form-feedback" id="requestFeedback" role="status"></p>
       </form>
     </section>
 
@@ -56,6 +96,7 @@
           <input id="importData" type="file" accept="application/json" />
         </label>
       </div>
+      <button class="ghost-button logout-button" type="button" id="logoutButton">Sair</button>
     </header>
 
     <main>
@@ -166,6 +207,14 @@
             </p>
           </div>
         </aside>
+      </section>
+
+      <section class="section approvals-section" id="aprovacoes" data-role-view="adm">
+        <div class="section-title">
+          <p class="eyebrow">ADM</p>
+          <h2>Solicitacoes de acesso</h2>
+        </div>
+        <div class="approval-list" id="approvalList"></div>
       </section>
 
       <section class="section" id="fila">

@@ -57,6 +57,10 @@ a {
   text-decoration: none;
 }
 
+.is-hidden {
+  display: none !important;
+}
+
 .login-screen {
   position: fixed;
   inset: 0;
@@ -168,6 +172,10 @@ a {
 
 .nav a:hover {
   color: var(--blue);
+}
+
+.logout-button {
+  min-height: 38px;
 }
 
 .icon-button {
@@ -438,6 +446,7 @@ legend {
 .team-list article,
 .hint,
 .sync-card,
+.approval-card,
 .timeline article {
   padding: 14px;
   background: #f5f9f8;
@@ -643,6 +652,34 @@ legend {
   gap: 10px;
 }
 
+.approval-list {
+  display: grid;
+  gap: 10px;
+}
+
+.approval-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.approval-card strong,
+.approval-card span {
+  display: block;
+}
+
+.approval-card span {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.approval-card div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .timeline span {
   color: var(--blue);
   font-size: 0.78rem;
@@ -703,6 +740,11 @@ legend {
   }
 
   .project-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .approval-card {
     align-items: stretch;
     flex-direction: column;
   }

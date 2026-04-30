@@ -17,12 +17,14 @@ Sem configuracao online, os dados ficam salvos apenas no navegador usado.
 
 ## Perfis de acesso
 
-- Comercial: `conceptcomercial`
-- Arquitetura: `conceptarq`
-- ADM: `conceptadm`
+O acesso usa email e senha. No primeiro acesso, a pessoa informa nome, email,
+senha e funcao desejada. O cadastro fica pendente ate o ADM liberar.
 
-Comercial cadastra e acompanha solicitacoes. Arquitetura assume e movimenta
-projetos. ADM ve tudo, exporta/importa backup e pode excluir registros.
+- Comercial: cadastra e acompanha solicitacoes.
+- Arquitetura: assume e movimenta projetos.
+- ADM: ve tudo, aprova usuarios, exporta/importa backup e pode excluir registros.
+
+ADM inicial: `kelvermendes1991@gmail.com`.
 
 ## Como deixar online para celular e outras maquinas
 
