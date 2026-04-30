@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Sistema da Concept Piscinas para fila de solicitacoes de projetos."
+      content="Sistema da Concept Piscinas para fila de solicitações de projetos."
     />
     <title>Concept Piscinas | Fila de Projetos</title>
     <link rel="stylesheet" href="styles.css?v=1" />
@@ -45,7 +45,7 @@
         <div>
           <p class="eyebrow">Primeiro acesso</p>
           <h1>Solicitar entrada</h1>
-          <p>Seu acesso fica pendente ate o ADM liberar.</p>
+          <p>Seu acesso fica pendente até o ADM liberar.</p>
         </div>
         <label>
           Nome
@@ -60,7 +60,7 @@
           <input name="password" type="password" autocomplete="new-password" minlength="6" required />
         </label>
         <label>
-          Funcao
+          Função
           <select name="role" required>
             <option value="comercial">Comercial</option>
             <option value="arquiteto">Arquiteto</option>
@@ -68,7 +68,7 @@
         </label>
         <button class="primary-button" type="submit">Solicitar acesso</button>
         <button class="ghost-button" type="button" id="showLogin">
-          Ja tenho acesso
+          Já tenho acesso
         </button>
         <p class="form-feedback" id="requestFeedback" role="status"></p>
       </form>
@@ -80,10 +80,10 @@
       </a>
 
       <nav class="nav" aria-label="Menu principal">
-        <a href="#nova" data-role-view="comercial adm">Nova solicitacao</a>
+        <a href="#nova" data-role-view="comercial adm">Nova solicitação</a>
         <a href="#fila">Fila</a>
-        <a href="#historico">Historico</a>
-        <a href="#aprovacoes" data-role-view="adm">Aprovacoes</a>
+        <a href="#historico">Histórico</a>
+        <a href="#aprovacoes" data-role-view="adm">Aprovações</a>
       </nav>
 
       <div class="role-badge" id="roleBadge">Acesso</div>
@@ -106,8 +106,8 @@
           <p class="eyebrow">Painel compartilhado</p>
           <h1>Controle a ordem dos projetos da Concept Piscinas.</h1>
           <p>
-            O vendedor registra a solicitacao inicial. A arquitetura assume o
-            projeto, informa prazo e movimenta pelas etapas ate a entrega.
+            O vendedor registra a solicitação inicial. A arquitetura assume o
+            projeto, informa prazo e movimenta pelas etapas até a entrega.
           </p>
         </div>
 
@@ -117,7 +117,7 @@
             <strong id="metricWaiting">0</strong>
           </article>
           <article>
-            <span>Em producao</span>
+            <span>Em produção</span>
             <strong id="metricWorking">0</strong>
           </article>
           <article>
@@ -130,7 +130,7 @@
       <section class="workspace">
         <form class="request-form" id="requestForm" data-role-view="comercial adm">
           <div class="section-title" id="nova">
-            <p class="eyebrow">Nova solicitacao</p>
+            <p class="eyebrow">Nova solicitação</p>
             <h2>Projeto inicial</h2>
           </div>
 
@@ -168,11 +168,11 @@
 
           <div class="form-grid">
             <label class="textarea-label">
-              Observacoes do vendedor
+              Observações do vendedor
               <textarea
                 name="notes"
                 rows="4"
-                placeholder="Detalhes do cliente, terreno, borda, casa de maquinas, referencias..."
+                placeholder="Detalhes do cliente, terreno, borda, casa de máquinas, referências..."
               ></textarea>
             </label>
             <label>
@@ -197,7 +197,7 @@
           </div>
           <div class="section-title">
             <p class="eyebrow">Equipe</p>
-            <h2>Responsaveis</h2>
+            <h2>Responsáveis</h2>
           </div>
           <div class="team-list" id="teamList"></div>
           <div class="hint">
@@ -213,7 +213,7 @@
       <section class="section approvals-section" id="aprovacoes" data-role-view="adm">
         <div class="section-title">
           <p class="eyebrow">ADM</p>
-          <h2>Solicitacoes de acesso</h2>
+          <h2>Solicitações de acesso</h2>
         </div>
         <div class="approval-list" id="approvalList"></div>
       </section>
@@ -221,13 +221,13 @@
       <section class="section" id="fila">
         <div class="section-title section-title--row">
           <div>
-            <p class="eyebrow">Ordem de solicitacao</p>
+            <p class="eyebrow">Ordem de solicitação</p>
             <h2>Fila de arquitetura</h2>
           </div>
           <div class="filters" aria-label="Filtros da fila">
             <button class="filter is-active" type="button" data-filter="all">Todos</button>
             <button class="filter" type="button" data-filter="waiting">Na fila</button>
-            <button class="filter" type="button" data-filter="working">Em producao</button>
+            <button class="filter" type="button" data-filter="working">Em produção</button>
             <button class="filter" type="button" data-filter="done">Entregues</button>
           </div>
         </div>
@@ -238,7 +238,7 @@
       <section class="section section--muted" id="historico">
         <div class="section-title">
           <p class="eyebrow">Linha do tempo</p>
-          <h2>Historico das movimentacoes</h2>
+          <h2>Histórico das movimentações</h2>
         </div>
         <div class="timeline" id="timeline"></div>
       </section>
@@ -263,6 +263,6 @@
     </template>
 
     <script src="config.js?v=1"></script>
-    <script src="script.js?v=3"></script>
+    <script src="script.js?v=4"></script>
   </body>
 </html>

@@ -10,16 +10,16 @@ const equipment = [
   "Aquecimento",
   "Cascata",
   "Borda atremica",
-  "Casa de maquinas",
+  "Casa de máquinas",
 ];
 const stages = [
-  "Projeto inicial (orcamento)",
-  "Projeto de paginacao",
+  "Projeto inicial (orçamento)",
+  "Projeto de paginação",
   "Projeto de dispositivos",
-  "Projeto de laminacao",
-  "Pronto de implantacao",
-  "Projeto hidraulica",
-  "Projeto eletrica",
+  "Projeto de laminação",
+  "Pronto de implantação",
+  "Projeto hidráulica",
+  "Projeto elétrica",
 ];
 
 const storageKey = "filaProjetosPiscinas";
@@ -262,7 +262,7 @@ function getStatus(project) {
 function getStatusLabel(status) {
   return {
     waiting: "Na fila",
-    working: "Em producao",
+    working: "Em produção",
     done: "Entregue",
   }[status];
 }
@@ -348,7 +348,7 @@ function renderActions(project) {
   const status = getStatus(project);
 
   if (currentRole === "comercial") {
-    return `<span class="readonly-note">Acompanhamento liberado. Alteracoes sao da arquitetura ou ADM.</span>`;
+    return `<span class="readonly-note">Acompanhamento liberado. Alterações são da arquitetura ou ADM.</span>`;
   }
 
   if (status === "done") {
@@ -358,7 +358,7 @@ function renderActions(project) {
   }
 
   const architectSelect = `
-    <select data-architect="${project.id}" aria-label="Arquiteto responsavel">
+    <select data-architect="${project.id}" aria-label="Arquiteto responsável">
       <option value="">Arquiteto</option>
       ${architects
         .map(
@@ -383,10 +383,10 @@ function renderActions(project) {
     ${architectSelect}
     ${estimateInput}
     <button class="secondary-button" type="button" data-take="${project.id}">
-      ${project.architect ? "Atualizar responsavel" : "Pegar projeto"}
+      ${project.architect ? "Atualizar responsável" : "Pegar projeto"}
     </button>
     <button class="secondary-button" type="button" data-prev="${project.id}">Voltar etapa</button>
-    <button class="primary-button" type="button" data-next="${project.id}">Avancar etapa</button>
+    <button class="primary-button" type="button" data-next="${project.id}">Avançar etapa</button>
     ${currentRole === "adm" ? `<button class="danger-button" type="button" data-delete="${project.id}">Excluir</button>` : ""}
   `;
 }
@@ -397,7 +397,7 @@ function renderQueue() {
     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
   if (!visible.length) {
-    queueList.innerHTML = `<p class="empty-state">Nenhuma solicitacao neste filtro.</p>`;
+    queueList.innerHTML = `<p class="empty-state">Nenhuma solicitação neste filtro.</p>`;
     return;
   }
 
@@ -420,13 +420,13 @@ function renderQueue() {
       <div><dt>Assumido</dt><dd>${formatDateTime(project.takenAt)}</dd></div>
       <div><dt>Estimativa</dt><dd>${escapeHtml(project.estimate || "-")}</dd></div>
       <div><dt>Etapa atual</dt><dd>${escapeHtml(stages[project.stageIndex])}</dd></div>
-      <div><dt>3D</dt><dd>${project.needs3d ? "Solicitado" : "Nao solicitado"}</dd></div>
+      <div><dt>3D</dt><dd>${project.needs3d ? "Solicitado" : "Não solicitado"}</dd></div>
     `;
     node.querySelector(".stage-track").innerHTML = renderStageTrack(project);
     node.querySelector(".project-notes").innerHTML = `
       <strong>Equipamentos</strong>
-      <p>${project.equipment.length ? project.equipment.map(escapeHtml).join(", ") : "Nao informado"}</p>
-      ${project.notes ? `<strong>Observacoes</strong><p>${escapeHtml(project.notes)}</p>` : ""}
+      <p>${project.equipment.length ? project.equipment.map(escapeHtml).join(", ") : "Não informado"}</p>
+      ${project.notes ? `<strong>Observações</strong><p>${escapeHtml(project.notes)}</p>` : ""}
       ${
         project.sketchName
           ? `<strong>Anexo</strong><p><a href="${project.sketchData}" download="${escapeHtml(project.sketchName)}">${escapeHtml(project.sketchName)}</a></p>`
@@ -460,7 +460,7 @@ function renderTimeline() {
           `,
         )
         .join("")
-    : `<p class="empty-state">O historico aparece assim que houver solicitacoes.</p>`;
+    : `<p class="empty-state">O histórico aparece assim que houver solicitações.</p>`;
 }
 
 async function renderApprovals() {
@@ -483,7 +483,7 @@ async function renderApprovals() {
           `,
         )
         .join("")
-    : `<p class="empty-state">Nenhuma solicitacao pendente.</p>`;
+    : `<p class="empty-state">Nenhuma solicitação pendente.</p>`;
 }
 
 function renderAll() {
@@ -533,21 +533,21 @@ async function enterApplication() {
   }
 
   if (!currentProfile) {
-    loginFeedback.textContent = "Perfil nao encontrado. Solicite acesso novamente.";
+    loginFeedback.textContent = "Perfil não encontrado. Solicite acesso novamente.";
     saveSession(null);
     showLoginScreen();
     return;
   }
 
   if (currentProfile.status === "pending") {
-    loginFeedback.textContent = "Seu acesso ainda esta aguardando liberacao do ADM.";
+    loginFeedback.textContent = "Seu acesso ainda está aguardando liberação do ADM.";
     saveSession(null);
     showLoginScreen();
     return;
   }
 
   if (currentProfile.status === "rejected") {
-    loginFeedback.textContent = "Seu acesso nao foi liberado. Fale com o ADM.";
+    loginFeedback.textContent = "Seu acesso não foi liberado. Fale com o ADM.";
     saveSession(null);
     showLoginScreen();
     return;
@@ -569,7 +569,7 @@ async function loadInitialData() {
       projects = loadProjects();
       updateSyncStatus(false);
       formFeedback.textContent =
-        "Nao foi possivel conectar ao banco online. Usando modo local neste navegador.";
+        "Não foi possível conectar ao banco online. Usando modo local neste navegador.";
     }
   } else {
     projects = loadProjects();
@@ -587,7 +587,7 @@ requestForm.addEventListener("submit", async (event) => {
   isSubmittingRequest = true;
   submitButton.disabled = true;
   submitButton.textContent = "Salvando...";
-  formFeedback.textContent = "Salvando solicitacao...";
+  formFeedback.textContent = "Salvando solicitação...";
 
   const data = new FormData(requestForm);
   const fileInfo = await fileToInfo(requestForm.elements.sketch.files[0]);
@@ -609,7 +609,7 @@ requestForm.addEventListener("submit", async (event) => {
     estimate: "",
     completedAt: "",
     createdAt: now,
-    history: [createHistory("Solicitacao inicial criada", data.get("seller"))],
+    history: [createHistory("Solicitação inicial criada", data.get("seller"))],
     ...fileInfo,
   };
 
@@ -619,13 +619,13 @@ requestForm.addEventListener("submit", async (event) => {
     await saveProject(project);
     requestForm.reset();
     sellerSelect.value = sellers[0];
-    formFeedback.textContent = `Solicitacao de ${project.client} adicionada na fila.`;
+    formFeedback.textContent = `Solicitação de ${project.client} adicionada na fila.`;
     renderAll();
   } catch (error) {
     console.error(error);
     projects = projects.filter((item) => item.id !== project.id);
     formFeedback.textContent =
-      "Nao foi possivel salvar. Confira a conexao e tente novamente.";
+      "Não foi possível salvar. Confira a conexão e tente novamente.";
   } finally {
     isSubmittingRequest = false;
     submitButton.disabled = false;
@@ -661,7 +661,7 @@ queueList.addEventListener("click", async (event) => {
     const person = project.architect || "Arquitetura";
     if (project.stageIndex < stages.length - 1) {
       project.stageIndex += 1;
-      project.history.push(createHistory(`Avancou para ${stages[project.stageIndex]}`, person));
+      project.history.push(createHistory(`Avançou para ${stages[project.stageIndex]}`, person));
     } else {
       project.completedAt = new Date().toISOString();
       project.history.push(createHistory("Projeto entregue", person));
@@ -681,7 +681,7 @@ queueList.addEventListener("click", async (event) => {
 
   if (actionButton.dataset.delete) {
     if (!canUse("adm")) return;
-    const canDelete = confirm(`Excluir a solicitacao de ${project.client}?`);
+    const canDelete = confirm(`Excluir a solicitação de ${project.client}?`);
     if (!canDelete) return;
     projects = projects.filter((item) => item.id !== id);
     await deleteProject(id);
@@ -739,7 +739,7 @@ importData.addEventListener("change", () => {
       }
       renderAll();
     } catch {
-      alert("Nao foi possivel importar esse arquivo.");
+      alert("Não foi possível importar esse arquivo.");
     }
   };
   reader.readAsText(file);
@@ -765,13 +765,13 @@ loginForm.addEventListener("submit", async (event) => {
   } catch (error) {
     console.error(error);
     saveSession(null);
-    loginFeedback.textContent = `Nao foi possivel entrar: ${error.message}`;
+    loginFeedback.textContent = `Não foi possível entrar: ${error.message}`;
   }
 });
 
 accessRequestForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  requestFeedback.textContent = "Enviando solicitacao...";
+  requestFeedback.textContent = "Enviando solicitação...";
   const data = new FormData(accessRequestForm);
 
   try {
@@ -788,10 +788,10 @@ accessRequestForm.addEventListener("submit", async (event) => {
     });
     accessRequestForm.reset();
     requestFeedback.textContent =
-      "Solicitacao enviada. Aguarde o ADM liberar seu acesso.";
+      "Solicitação enviada. Aguarde o ADM liberar seu acesso.";
   } catch (error) {
     console.error(error);
-    requestFeedback.textContent = "Nao foi possivel solicitar acesso. Verifique os dados.";
+    requestFeedback.textContent = "Não foi possível solicitar acesso. Verifique os dados.";
   }
 });
 

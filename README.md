@@ -1,32 +1,32 @@
 # Concept Piscinas - Fila de Projetos
 
-Sistema simples para organizar solicitacoes de projetos entre comercial e
+Sistema simples para organizar solicitações de projetos entre comercial e
 arquitetura da Concept Piscinas.
 
 ## Como usar localmente
 
 1. Abra `index.html` no navegador.
 2. Entre com uma das senhas de perfil.
-3. O vendedor preenche a solicitacao inicial do cliente.
-4. A solicitacao entra automaticamente na fila por ordem de cadastro.
-5. O arquiteto escolhe o proprio nome, informa a estimativa e clica em
+3. O vendedor preenche a solicitação inicial do cliente.
+4. A solicitação entra automaticamente na fila por ordem de cadastro.
+5. O arquiteto escolhe o próprio nome, informa a estimativa e clica em
    `Pegar projeto`.
-6. A arquitetura avanca o card pelas etapas ate marcar como entregue.
+6. A arquitetura avança o card pelas etapas até marcar como entregue.
 
-Sem configuracao online, os dados ficam salvos apenas no navegador usado.
+Sem configuração online, os dados ficam salvos apenas no navegador usado.
 
 ## Perfis de acesso
 
 O acesso usa email e senha. No primeiro acesso, a pessoa informa nome, email,
-senha e funcao desejada. O cadastro fica pendente ate o ADM liberar.
+senha e função desejada. O cadastro fica pendente até o ADM liberar.
 
-- Comercial: cadastra e acompanha solicitacoes.
+- Comercial: cadastra e acompanha solicitações.
 - Arquitetura: assume e movimenta projetos.
 - ADM: ve tudo, aprova usuarios, exporta/importa backup e pode excluir registros.
 
 ADM inicial: `kelvermendes1991@gmail.com`.
 
-## Como deixar online para celular e outras maquinas
+## Como deixar online para celular e outras máquinas
 
 ### 1. Criar banco gratuito no Supabase
 
@@ -55,7 +55,7 @@ window.APP_CONFIG = {
 
 ### 3. Publicar o site
 
-Publique a pasta `fila-projetos-piscinas` em um servico de site estatico:
+Publique a pasta `fila-projetos-piscinas` em um serviço de site estático:
 
 - GitHub Pages
 - Netlify
@@ -87,19 +87,19 @@ Arquitetura:
 
 ## Etapas do projeto
 
-1. Projeto inicial (orcamento)
-2. Projeto de paginacao
+1. Projeto inicial (orçamento)
+2. Projeto de paginação
 3. Projeto de dispositivos
-4. Projeto de laminacao
-5. Pronto de implantacao
-6. Projeto hidraulica
-7. Projeto eletrica
+4. Projeto de laminação
+5. Pronto de implantação
+6. Projeto hidráulica
+7. Projeto elétrica
 
 ## Arquivos principais
 
 - `index.html`: estrutura das telas.
 - `styles.css`: visual responsivo.
-- `script.js`: regras da fila, etapas, historico e persistencia.
-- `config.js`: configuracao da Concept Piscinas e do Supabase.
+- `script.js`: regras da fila, etapas, histórico e persistência.
+- `config.js`: configuração da Concept Piscinas e do Supabase.
 - `database.sql`: estrutura do banco online gratuito.
 - `assets/`: logos da Concept usadas na interface.
