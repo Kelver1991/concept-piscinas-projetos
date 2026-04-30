@@ -39,7 +39,9 @@ const filters = document.querySelectorAll(".filter");
 const exportData = document.querySelector("#exportData");
 const importData = document.querySelector("#importData");
 const syncStatus = document.querySelector("#syncStatus");
+const submitButton = requestForm.querySelector('button[type="submit"]');
 let activeFilter = "all";
+let isSubmittingRequest = false;
 
 function loadProjects() {
   try {
@@ -374,6 +376,13 @@ async function fileToInfo(file) {
 
 requestForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (isSubmittingRequest) return;
+
+  isSubmittingRequest = true;
+  submitButton.disabled = true;
+  submitButton.textContent = "Salvando...";
+  formFeedback.textContent = "Salvando solicitacao...";
+
   const data = new FormData(requestForm);
   const fileInfo = await fileToInfo(requestForm.elements.sketch.files[0]);
   const now = new Date().toISOString();
@@ -399,11 +408,23 @@ requestForm.addEventListener("submit", async (event) => {
   };
 
   projects.push(project);
-  await saveProject(project);
-  requestForm.reset();
-  sellerSelect.value = sellers[0];
-  formFeedback.textContent = `Solicitacao de ${project.client} adicionada na fila.`;
-  renderAll();
+
+  try {
+    await saveProject(project);
+    requestForm.reset();
+    sellerSelect.value = sellers[0];
+    formFeedback.textContent = `Solicitacao de ${project.client} adicionada na fila.`;
+    renderAll();
+  } catch (error) {
+    console.error(error);
+    projects = projects.filter((item) => item.id !== project.id);
+    formFeedback.textContent =
+      "Nao foi possivel salvar. Confira a conexao e tente novamente.";
+  } finally {
+    isSubmittingRequest = false;
+    submitButton.disabled = false;
+    submitButton.textContent = "Adicionar na fila";
+  }
 });
 
 queueList.addEventListener("click", async (event) => {
