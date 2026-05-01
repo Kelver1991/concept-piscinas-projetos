@@ -38,6 +38,8 @@ const timeline = document.querySelector("#timeline");
 const template = document.querySelector("#projectTemplate");
 const formFeedback = document.querySelector("#formFeedback");
 const filters = document.querySelectorAll(".filter");
+const filterButtons = document.querySelectorAll("[data-filter]");
+const refreshProjects = document.querySelector("#refreshProjects");
 const exportData = document.querySelector("#exportData");
 const importData = document.querySelector("#importData");
 const syncStatus = document.querySelector("#syncStatus");
@@ -70,6 +72,9 @@ function loadSession() {
 }
 
 function saveSession(session) {
+  if (session?.expires_in && !session.expires_at) {
+    session.expires_at = Math.floor(Date.now() / 1000) + session.expires_in;
+  }
   currentSession = session;
   currentUser = session?.user || null;
   if (session) {
@@ -108,11 +113,36 @@ async function authRequest(path, options = {}) {
   return data;
 }
 
+async function refreshSessionIfNeeded(force = false) {
+  if (!currentSession?.refresh_token) return;
+  const now = Math.floor(Date.now() / 1000);
+  const shouldRefresh = force || !currentSession.expires_at || currentSession.expires_at - now < 60;
+  if (!shouldRefresh) return;
+
+  const nextSession = await authRequest("token?grant_type=refresh_token", {
+    method: "POST",
+    body: JSON.stringify({
+      refresh_token: currentSession.refresh_token,
+    }),
+  });
+  saveSession(nextSession);
+}
+
 async function supabaseRequest(path, options = {}) {
-  const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+  await refreshSessionIfNeeded();
+
+  let response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
     ...options,
     headers: dataHeaders(options.headers || {}),
   });
+
+  if (response.status === 401 && currentSession?.refresh_token) {
+    await refreshSessionIfNeeded(true);
+    response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+      ...options,
+      headers: dataHeaders(options.headers || {}),
+    });
+  }
 
   if (!response.ok) {
     const message = await response.text();
@@ -340,6 +370,13 @@ function updateSyncStatus(isOnline) {
   syncStatus.dataset.mode = isOnline ? "online" : "local";
 }
 
+function setActiveFilter(filter) {
+  activeFilter = filter;
+  filterButtons.forEach((item) => {
+    item.classList.toggle("is-active", item.dataset.filter === filter);
+  });
+}
+
 function renderStageTrack(project) {
   return stages
     .map((stage, index) => {
@@ -403,7 +440,9 @@ function renderQueue() {
     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
   if (!visible.length) {
-    queueList.innerHTML = `<p class="empty-state">Nenhuma solicitação neste filtro.</p>`;
+    queueList.innerHTML = projects.length
+      ? `<p class="empty-state">Há projetos cadastrados, mas nenhum neste filtro. Clique em “Todos” para ver a lista completa.</p>`
+      : `<p class="empty-state">Nenhuma solicitação cadastrada ainda.</p>`;
     return;
   }
 
@@ -597,6 +636,7 @@ async function loadInitialData() {
     try {
       projects = await loadRemoteProjects();
       saveLocalProjects(projects);
+      setActiveFilter("all");
       updateSyncStatus(true);
     } catch (error) {
       console.error(error);
@@ -736,13 +776,19 @@ approvalList.addEventListener("click", async (event) => {
   await renderApprovals();
 });
 
-filters.forEach((button) => {
+filterButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    filters.forEach((item) => item.classList.remove("is-active"));
-    button.classList.add("is-active");
-    activeFilter = button.dataset.filter;
+    setActiveFilter(button.dataset.filter);
     renderQueue();
   });
+});
+
+refreshProjects.addEventListener("click", async () => {
+  refreshProjects.disabled = true;
+  refreshProjects.textContent = "Atualizando...";
+  await refreshRemoteProjects();
+  refreshProjects.disabled = false;
+  refreshProjects.textContent = "Atualizar fila";
 });
 
 exportData.addEventListener("click", () => {
