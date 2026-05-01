@@ -508,6 +508,9 @@ legend {
 .queue {
   display: grid;
   gap: 14px;
+  max-height: 760px;
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
 .project-card {
@@ -662,6 +665,12 @@ legend {
 .approval-group {
   display: grid;
   gap: 10px;
+}
+
+.approval-group:not(:first-child) {
+  max-height: 254px;
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
 .approval-group h3 {
