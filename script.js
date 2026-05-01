@@ -188,12 +188,11 @@ async function loadPendingProfiles() {
 }
 
 async function updateProfileStatus(id, status) {
-  await supabaseRequest(`profiles?id=eq.${encodeURIComponent(id)}`, {
-    method: "PATCH",
+  await supabaseRequest("rpc/admin_set_profile_status", {
+    method: "POST",
     body: JSON.stringify({
-      status,
-      approved_at: status === "approved" ? new Date().toISOString() : null,
-      approved_by: currentUser.id,
+      target_id: id,
+      next_status: status,
     }),
   });
 }

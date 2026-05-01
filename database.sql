@@ -72,11 +72,52 @@ on public.profiles for select
 to authenticated
 using (true);
 
-create policy "Authenticated users can update profiles"
-on public.profiles for update
-to authenticated
-using (true)
-with check (true);
+create or replace function public.admin_set_profile_status(
+  target_id uuid,
+  next_status text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if next_status not in ('approved', 'rejected') then
+    raise exception 'Status invalido';
+  end if;
+
+  if not exists (
+    select 1 from public.profiles adm
+    where adm.id = auth.uid()
+      and adm.role = 'adm'
+      and adm.status = 'approved'
+  ) then
+    raise exception 'Acesso negado';
+  end if;
+
+  update public.profiles
+  set
+    status = next_status,
+    approved_at = case when next_status = 'approved' then now() else null end,
+    approved_by = auth.uid()
+  where id = target_id;
+
+  if next_status = 'approved' then
+    update auth.users
+    set email_confirmed_at = coalesce(email_confirmed_at, now())
+    where id = target_id;
+  end if;
+end;
+$$;
+
+grant execute on function public.admin_set_profile_status(uuid, text) to authenticated;
+
+update auth.users
+set email_confirmed_at = coalesce(email_confirmed_at, now())
+where id in (
+  select id from public.profiles
+  where status = 'approved'
+);
 
 drop policy if exists "Allow public read projects" on public.projects;
 drop policy if exists "Allow public insert projects" on public.projects;
