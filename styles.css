@@ -656,7 +656,17 @@ legend {
 
 .approval-list {
   display: grid;
+  gap: 18px;
+}
+
+.approval-group {
+  display: grid;
   gap: 10px;
+}
+
+.approval-group h3 {
+  margin: 0;
+  font-size: 1.05rem;
 }
 
 .approval-card {
@@ -664,6 +674,11 @@ legend {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+}
+
+.approval-card--approved {
+  background: #edf8f2;
+  border-color: #b9dfca;
 }
 
 .approval-card strong,

@@ -187,6 +187,13 @@ async function loadPendingProfiles() {
   });
 }
 
+async function loadApprovedProfiles() {
+  if (!canUse("adm")) return [];
+  return supabaseRequest("profiles?select=id,name,email,role,status,created_at,approved_at&status=eq.approved&order=approved_at.desc", {
+    headers: { Prefer: "" },
+  });
+}
+
 async function updateProfileStatus(id, status) {
   await supabaseRequest("rpc/admin_set_profile_status", {
     method: "POST",
@@ -465,7 +472,8 @@ function renderTimeline() {
 async function renderApprovals() {
   if (!canUse("adm")) return;
   const pending = await loadPendingProfiles().catch(() => []);
-  approvalList.innerHTML = pending.length
+  const approved = await loadApprovedProfiles().catch(() => []);
+  const pendingHtml = pending.length
     ? pending
         .map(
           (profile) => `
@@ -483,6 +491,33 @@ async function renderApprovals() {
         )
         .join("")
     : `<p class="empty-state">Nenhuma solicitação pendente.</p>`;
+
+  const approvedHtml = approved.length
+    ? approved
+        .map(
+          (profile) => `
+            <article class="approval-card approval-card--approved">
+              <div>
+                <strong>${escapeHtml(profile.name)}</strong>
+                <span>${escapeHtml(profile.email)} - ${getRoleLabel(profile.role)}</span>
+              </div>
+              <span class="status-pill" data-status="done">Liberado</span>
+            </article>
+          `,
+        )
+        .join("")
+    : `<p class="empty-state">Nenhum usuário liberado ainda.</p>`;
+
+  approvalList.innerHTML = `
+    <div class="approval-group">
+      <h3>Pendentes</h3>
+      ${pendingHtml}
+    </div>
+    <div class="approval-group">
+      <h3>Liberados</h3>
+      ${approvedHtml}
+    </div>
+  `;
 }
 
 function renderAll() {
