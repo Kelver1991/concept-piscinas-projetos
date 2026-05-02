@@ -454,7 +454,6 @@ legend {
 
 .team-list article,
 .hint,
-.sync-card,
 .approval-card,
 .timeline article {
   padding: 14px;
@@ -479,27 +478,6 @@ legend {
 
 .hint {
   margin-top: 14px;
-}
-
-.sync-card {
-  margin-bottom: 16px;
-  background: #fff8ed;
-  border-color: #ead0a6;
-}
-
-.sync-card[data-mode="online"] {
-  background: #edf8f2;
-  border-color: #b9dfca;
-}
-
-.sync-card strong {
-  display: block;
-}
-
-.sync-card p {
-  margin: 6px 0 0;
-  color: var(--muted);
-  line-height: 1.5;
 }
 
 .hint p,

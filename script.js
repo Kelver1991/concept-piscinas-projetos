@@ -43,7 +43,6 @@ const filterButtons = document.querySelectorAll("[data-filter]");
 const refreshProjects = document.querySelector("#refreshProjects");
 const exportData = document.querySelector("#exportData");
 const importData = document.querySelector("#importData");
-const syncStatus = document.querySelector("#syncStatus");
 const submitButton = requestForm.querySelector('button[type="submit"]');
 const loginScreen = document.querySelector("#loginScreen");
 const loginForm = document.querySelector("#loginForm");
@@ -382,19 +381,6 @@ function updateMetrics() {
   document.querySelector("#metricDone").textContent = totals.done;
 }
 
-function updateSyncStatus(isOnline) {
-  syncStatus.innerHTML = isOnline
-    ? `
-        <strong>Online</strong>
-        <p>Dados sincronizados no Supabase para computador e celular.</p>
-      `
-    : `
-        <strong>Modo local</strong>
-        <p>Configure o Supabase para sincronizar entre celular e computadores.</p>
-      `;
-  syncStatus.dataset.mode = isOnline ? "online" : "local";
-}
-
 function setActiveFilter(filter) {
   activeFilter = filter;
   filterButtons.forEach((item) => {
@@ -623,12 +609,10 @@ async function refreshRemoteProjects() {
   try {
     projects = await loadRemoteProjects();
     clearLocalProjectCache();
-    updateSyncStatus(true);
     lastProjectLoadError = "";
     updateProjectDebug(`Projetos carregados do Supabase: ${projects.length}.`);
   } catch (error) {
     console.error(error);
-    updateSyncStatus(false);
     lastProjectLoadError = `Não foi possível carregar os projetos agora. Erro: ${error.message}`;
     updateProjectDebug(lastProjectLoadError);
   } finally {
@@ -700,12 +684,10 @@ async function loadInitialData() {
       projects = await loadRemoteProjects();
       clearLocalProjectCache();
       setActiveFilter("all");
-      updateSyncStatus(true);
       lastProjectLoadError = "";
       updateProjectDebug(`Projetos carregados do Supabase: ${projects.length}.`);
     } catch (error) {
       console.error(error);
-      updateSyncStatus(false);
       lastProjectLoadError = `Não foi possível carregar os projetos agora. Erro: ${error.message}`;
       updateProjectDebug(lastProjectLoadError);
     } finally {
@@ -713,7 +695,6 @@ async function loadInitialData() {
     }
   } else {
     projects = loadProjects();
-    updateSyncStatus(false);
     updateProjectDebug("Banco online desativado. Usando somente dados deste navegador.");
   }
 
