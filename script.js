@@ -57,6 +57,8 @@ const logoutButton = document.querySelector("#logoutButton");
 
 let activeFilter = "all";
 let isSubmittingRequest = false;
+let isLoadingProjects = false;
+let lastProjectLoadError = "";
 let projects = [];
 let currentSession = loadSession();
 let currentUser = currentSession?.user || null;
@@ -435,6 +437,16 @@ function renderActions(project) {
 }
 
 function renderQueue() {
+  if (isLoadingProjects) {
+    queueList.innerHTML = `<p class="empty-state">Carregando projetos...</p>`;
+    return;
+  }
+
+  if (lastProjectLoadError) {
+    queueList.innerHTML = `<p class="empty-state">${escapeHtml(lastProjectLoadError)}</p>`;
+    return;
+  }
+
   const visible = projects
     .filter((project) => activeFilter === "all" || getStatus(project) === activeFilter)
     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
@@ -484,6 +496,16 @@ function renderQueue() {
 }
 
 function renderTimeline() {
+  if (isLoadingProjects) {
+    timeline.innerHTML = `<p class="empty-state">Carregando histórico...</p>`;
+    return;
+  }
+
+  if (lastProjectLoadError) {
+    timeline.innerHTML = `<p class="empty-state">O histórico será exibido assim que a fila carregar.</p>`;
+    return;
+  }
+
   const items = projects
     .flatMap((project) =>
       project.history.map((item) => ({
@@ -569,14 +591,24 @@ function renderAll() {
 async function refreshRemoteProjects() {
   if (!useRemoteDatabase || !currentSession || !currentProfile) return;
 
+  isLoadingProjects = true;
+  lastProjectLoadError = "";
+  renderQueue();
+  renderTimeline();
+
   try {
     projects = await loadRemoteProjects();
     saveLocalProjects(projects);
     updateSyncStatus(true);
-    renderAll();
+    lastProjectLoadError = "";
   } catch (error) {
     console.error(error);
     updateSyncStatus(false);
+    lastProjectLoadError =
+      "Não foi possível carregar os projetos agora. Clique em “Atualizar fila” ou tente novamente em instantes.";
+  } finally {
+    isLoadingProjects = false;
+    renderAll();
   }
 }
 
@@ -633,17 +665,24 @@ async function enterApplication() {
 
 async function loadInitialData() {
   if (useRemoteDatabase) {
+    isLoadingProjects = true;
+    lastProjectLoadError = "";
+    renderQueue();
+    renderTimeline();
+
     try {
       projects = await loadRemoteProjects();
       saveLocalProjects(projects);
       setActiveFilter("all");
       updateSyncStatus(true);
+      lastProjectLoadError = "";
     } catch (error) {
       console.error(error);
-      projects = loadProjects();
       updateSyncStatus(false);
-      formFeedback.textContent =
-        "Não foi possível conectar ao banco online. Usando modo local neste navegador.";
+      lastProjectLoadError =
+        "Não foi possível carregar os projetos agora. Clique em “Atualizar fila” ou tente novamente em instantes.";
+    } finally {
+      isLoadingProjects = false;
     }
   } else {
     projects = loadProjects();

@@ -659,15 +659,14 @@ legend {
 
 .approval-list {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
 
 .approval-group {
   display: grid;
   gap: 10px;
-}
-
-.approval-group:not(:first-child) {
+  align-content: start;
   max-height: 254px;
   overflow-y: auto;
   padding-right: 6px;
@@ -777,6 +776,10 @@ legend {
   .approval-card {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .approval-list {
+    grid-template-columns: 1fr;
   }
 
   .project-actions input,
