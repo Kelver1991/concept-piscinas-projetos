@@ -182,3 +182,102 @@ using (
       and p.role = 'adm'
   )
 );
+
+create or replace function public.app_list_projects()
+returns table (
+  id text,
+  data jsonb,
+  created_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid()
+      and p.status = 'approved'
+  ) then
+    raise exception 'Acesso negado';
+  end if;
+
+  return query
+  select p.id, p.data, p.created_at
+  from public.projects p
+  order by p.created_at asc;
+end;
+$$;
+
+create or replace function public.app_save_project(
+  project_id text,
+  project_data jsonb
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  user_role text;
+  project_exists boolean;
+begin
+  select p.role into user_role
+  from public.profiles p
+  where p.id = auth.uid()
+    and p.status = 'approved';
+
+  if user_role is null then
+    raise exception 'Acesso negado';
+  end if;
+
+  select exists (
+    select 1 from public.projects p
+    where p.id = project_id
+  ) into project_exists;
+
+  if not project_exists and user_role not in ('comercial', 'adm') then
+    raise exception 'Apenas comercial ou ADM podem criar solicitações';
+  end if;
+
+  if project_exists and user_role not in ('arquiteto', 'adm') then
+    raise exception 'Apenas arquitetura ou ADM podem atualizar projetos';
+  end if;
+
+  insert into public.projects (id, data, created_at, updated_at)
+  values (
+    project_id,
+    project_data,
+    coalesce((project_data->>'createdAt')::timestamptz, now()),
+    now()
+  )
+  on conflict (id) do update
+  set data = excluded.data,
+      updated_at = now();
+end;
+$$;
+
+create or replace function public.app_delete_project(project_id text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid()
+      and p.status = 'approved'
+      and p.role = 'adm'
+  ) then
+    raise exception 'Acesso negado';
+  end if;
+
+  delete from public.projects
+  where id = project_id;
+end;
+$$;
+
+grant execute on function public.app_list_projects() to authenticated;
+grant execute on function public.app_save_project(text, jsonb) to authenticated;
+grant execute on function public.app_delete_project(text) to authenticated;

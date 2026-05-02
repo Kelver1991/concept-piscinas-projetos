@@ -168,8 +168,10 @@ function saveLocalProjects(nextProjects) {
 }
 
 async function loadRemoteProjects() {
-  const rows = await supabaseRequest("projects?select=id,data,created_at&order=created_at.asc", {
+  const rows = await supabaseRequest("rpc/app_list_projects", {
+    method: "POST",
     headers: { Prefer: "" },
+    body: "{}",
   });
   return rows.map((row) => row.data);
 }
@@ -180,14 +182,11 @@ async function saveProject(project) {
     return;
   }
 
-  await supabaseRequest("projects?on_conflict=id", {
+  await supabaseRequest("rpc/app_save_project", {
     method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
     body: JSON.stringify({
-      id: project.id,
-      data: project,
-      created_at: project.createdAt,
-      updated_at: new Date().toISOString(),
+      project_id: project.id,
+      project_data: project,
     }),
   });
 }
@@ -198,8 +197,11 @@ async function deleteProject(id) {
     return;
   }
 
-  await supabaseRequest(`projects?id=eq.${encodeURIComponent(id)}`, {
-    method: "DELETE",
+  await supabaseRequest("rpc/app_delete_project", {
+    method: "POST",
+    body: JSON.stringify({
+      project_id: id,
+    }),
   });
 }
 
