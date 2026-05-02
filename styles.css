@@ -662,6 +662,10 @@ legend {
 .timeline {
   display: grid;
   gap: 10px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 8px;
+  overscroll-behavior: contain;
 }
 
 .approval-list {
