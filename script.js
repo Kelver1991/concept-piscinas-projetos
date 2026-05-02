@@ -170,7 +170,19 @@ function loadProjects() {
 }
 
 function saveLocalProjects(nextProjects) {
-  localStorage.setItem(storageKey, JSON.stringify(nextProjects));
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(nextProjects));
+  } catch (error) {
+    console.warn("Nao foi possivel salvar cache local dos projetos.", error);
+  }
+}
+
+function clearLocalProjectCache() {
+  try {
+    localStorage.removeItem(storageKey);
+  } catch (error) {
+    console.warn("Nao foi possivel limpar cache local dos projetos.", error);
+  }
 }
 
 async function loadRemoteProjects() {
@@ -610,7 +622,7 @@ async function refreshRemoteProjects() {
 
   try {
     projects = await loadRemoteProjects();
-    saveLocalProjects(projects);
+    clearLocalProjectCache();
     updateSyncStatus(true);
     lastProjectLoadError = "";
     updateProjectDebug(`Projetos carregados do Supabase: ${projects.length}.`);
@@ -686,7 +698,7 @@ async function loadInitialData() {
 
     try {
       projects = await loadRemoteProjects();
-      saveLocalProjects(projects);
+      clearLocalProjectCache();
       setActiveFilter("all");
       updateSyncStatus(true);
       lastProjectLoadError = "";
@@ -868,9 +880,10 @@ importData.addEventListener("change", () => {
       const imported = JSON.parse(reader.result);
       if (!Array.isArray(imported)) throw new Error("Arquivo invalido");
       projects = imported;
-      saveLocalProjects(projects);
       if (useRemoteDatabase) {
         Promise.all(projects.map(saveProject)).catch(console.error);
+      } else {
+        saveLocalProjects(projects);
       }
       renderAll();
     } catch {
