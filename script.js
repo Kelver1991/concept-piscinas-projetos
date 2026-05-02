@@ -34,6 +34,7 @@ const sellerSelect = requestForm.elements.seller;
 const equipmentOptions = document.querySelector("#equipmentOptions");
 const teamList = document.querySelector("#teamList");
 const queueList = document.querySelector("#queueList");
+const projectDebug = document.querySelector("#projectDebug");
 const timeline = document.querySelector("#timeline");
 const template = document.querySelector("#projectTemplate");
 const formFeedback = document.querySelector("#formFeedback");
@@ -64,6 +65,11 @@ let currentSession = loadSession();
 let currentUser = currentSession?.user || null;
 let currentProfile = null;
 let currentRole = "";
+
+function updateProjectDebug(message = "") {
+  if (!projectDebug) return;
+  projectDebug.textContent = canUse("adm") ? message : "";
+}
 
 function loadSession() {
   try {
@@ -173,6 +179,9 @@ async function loadRemoteProjects() {
     headers: { Prefer: "" },
     body: "{}",
   });
+  if (!Array.isArray(rows)) {
+    throw new Error("Resposta inesperada ao carregar projetos.");
+  }
   return rows.map((row) => row.data);
 }
 
@@ -595,6 +604,7 @@ async function refreshRemoteProjects() {
 
   isLoadingProjects = true;
   lastProjectLoadError = "";
+  updateProjectDebug("Carregando projetos do Supabase...");
   renderQueue();
   renderTimeline();
 
@@ -603,11 +613,12 @@ async function refreshRemoteProjects() {
     saveLocalProjects(projects);
     updateSyncStatus(true);
     lastProjectLoadError = "";
+    updateProjectDebug(`Projetos carregados do Supabase: ${projects.length}.`);
   } catch (error) {
     console.error(error);
     updateSyncStatus(false);
-    lastProjectLoadError =
-      "Não foi possível carregar os projetos agora. Clique em “Atualizar fila” ou tente novamente em instantes.";
+    lastProjectLoadError = `Não foi possível carregar os projetos agora. Erro: ${error.message}`;
+    updateProjectDebug(lastProjectLoadError);
   } finally {
     isLoadingProjects = false;
     renderAll();
@@ -669,6 +680,7 @@ async function loadInitialData() {
   if (useRemoteDatabase) {
     isLoadingProjects = true;
     lastProjectLoadError = "";
+    updateProjectDebug("Carregando projetos do Supabase...");
     renderQueue();
     renderTimeline();
 
@@ -678,17 +690,19 @@ async function loadInitialData() {
       setActiveFilter("all");
       updateSyncStatus(true);
       lastProjectLoadError = "";
+      updateProjectDebug(`Projetos carregados do Supabase: ${projects.length}.`);
     } catch (error) {
       console.error(error);
       updateSyncStatus(false);
-      lastProjectLoadError =
-        "Não foi possível carregar os projetos agora. Clique em “Atualizar fila” ou tente novamente em instantes.";
+      lastProjectLoadError = `Não foi possível carregar os projetos agora. Erro: ${error.message}`;
+      updateProjectDebug(lastProjectLoadError);
     } finally {
       isLoadingProjects = false;
     }
   } else {
     projects = loadProjects();
     updateSyncStatus(false);
+    updateProjectDebug("Banco online desativado. Usando somente dados deste navegador.");
   }
 
   renderAll();
