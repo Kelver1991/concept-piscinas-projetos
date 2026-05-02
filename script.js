@@ -406,9 +406,13 @@ function renderActions(project) {
   }
 
   if (status === "done") {
-    return canUse("arquiteto", "adm")
+    const reopenButton = canUse("arquiteto", "adm")
       ? `<button class="ghost-button" type="button" data-reopen="${project.id}">Reabrir</button>`
       : "";
+    const deleteButton = currentRole === "adm"
+      ? `<button class="danger-button" type="button" data-delete="${project.id}">Excluir</button>`
+      : "";
+    return `${reopenButton}${deleteButton}`;
   }
 
   const architectSelect = `
